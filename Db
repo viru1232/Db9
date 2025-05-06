@@ -1,0 +1,36 @@
+DELIMITER //
+
+CREATE PROCEDURE demo_cursor()
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE v_roll_no INT;
+    DECLARE v_name VARCHAR(90);
+    DECLARE v_address VARCHAR(90);
+
+    DECLARE cur_student CURSOR FOR
+        SELECT roll_no, name, address FROM student;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    SET done = FALSE;
+    BEGIN
+        DECLARE v_implicit_name VARCHAR(90);
+        SELECT name INTO v_implicit_name FROM student WHERE roll_no = 3;
+        SELECT CONCAT('IMPLICIT CURSOR RESULT: ', v_implicit_name) AS result;
+    END;
+
+    SET done = FALSE;
+    OPEN cur_student;
+
+    read_loop: LOOP
+        FETCH cur_student INTO v_roll_no, v_name, v_address;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        SELECT CONCAT('EXPLICIT CURSOR RESULT: ', v_roll_no, ' - ', v_name, ' - ', v_address) AS result;
+    END LOOP;
+
+    CLOSE cur_student;
+END//
+
+DELIMITER ;
